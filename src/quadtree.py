@@ -9,16 +9,16 @@ class QuadTree:
         self.divided = False
         self.points = []
 
-    def pointCount(self):
-        pointsLen = len(self.points)
+    def count(self):
+        cnt = len(self.points)
         if not self.divided:
-            return pointsLen
+            return cnt
         else:
-            pointsLen += self.northEast.pointCount()
-            pointsLen += self.northWest.pointCount()
-            pointsLen += self.southEast.pointCount()
-            pointsLen += self.southWest.pointCount()
-        return pointsLen
+            cnt += self.northEast.count()
+            cnt += self.northWest.count()
+            cnt += self.southEast.count()
+            cnt += self.southWest.count()
+        return cnt
 
     def draw(self, surface: Surface):
         draw_rect_border(surface, self.boundary, (255, 255, 255))
