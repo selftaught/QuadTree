@@ -1,5 +1,5 @@
 from pygame import draw, Rect, Surface
-from src.helpers import drawRectBorder
+from src.helpers import draw_rect_border
 
 
 class QuadTree:
@@ -9,8 +9,19 @@ class QuadTree:
         self.divided = False
         self.points = []
 
+    def pointCount(self):
+        pointsLen = len(self.points)
+        if not self.divided:
+            return pointsLen
+        else:
+            pointsLen += self.northEast.pointCount()
+            pointsLen += self.northWest.pointCount()
+            pointsLen += self.southEast.pointCount()
+            pointsLen += self.southWest.pointCount()
+        return pointsLen
+
     def draw(self, surface: Surface):
-        drawRectBorder(surface, self.boundary, (255, 255, 255))
+        draw_rect_border(surface, self.boundary, (255, 255, 255))
 
         if self.divided:
             self.northEast.draw(surface)
@@ -18,23 +29,8 @@ class QuadTree:
             self.southEast.draw(surface)
             self.southWest.draw(surface)
 
-    def query(self, area: Rect, found: list = []):
-        if not self.boundary.colliderect(area):
-            return found
-        else:
-            for p in self.points:
-                if area.collidepoint(p.x, p.y):
-                    found.append(p)
-            if self.divided:
-                self.northWest.query(area, found)
-                self.northEast.query(area, found)
-                self.southWest.query(area, found)
-                self.southEast.query(area, found)
-        return found
-
     def insert(self, point):
         if not self.boundary.collidepoint(point.x, point.y):
-            # print(f"Point({point}) is not in boundary {self.boundary}")
             return False
 
         if len(self.points) < self.capacity:
@@ -52,6 +48,23 @@ class QuadTree:
                 return True
             elif self.southWest.insert(point):
                 return True
+
+    def query(self, area: Rect):
+        found = []
+        if not self.boundary.colliderect(area):
+            return found
+
+        for p in self.points:
+            if area.collidepoint(p.x, p.y):
+                found.append(p)
+
+        if self.divided:
+            found.extend(self.northWest.query(area))
+            found.extend(self.northEast.query(area))
+            found.extend(self.southWest.query(area))
+            found.extend(self.southEast.query(area))
+
+        return found
 
     def subdivide(self):
         x = self.boundary.x
